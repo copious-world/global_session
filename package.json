@@ -1,0 +1,39 @@
+{
+  "name": "global_session",
+  "version": "0.1.0",
+  "description": "A link between LRU and messaging to peers which may store or cache LRU entries remotely",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "bin": {
+    "global-sessions": "./bin/index.js"
+  },
+  "scripts": {
+    "test": "node test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copious-world/global_persistence.git"
+  },
+  "keywords": [
+    "resident",
+    "cache",
+    "share",
+    "interface",
+    "and",
+    "gateway"
+  ],
+  "author": "R Leddy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/copious-world/global_persistence/issues"
+  },
+  "homepage": "https://github.com/copious-world/global_persistence#readme",
+  "dependencies": {
+    "ftok": "^1.0.0",
+    "global_session": "link:",
+    "message-relay-services": "^0.5.3",
+    "shm-lru-cache": "^0.0.3"
+  }
+}
