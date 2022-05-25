@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const SessionMidpoint = require('../lib/session_midpoint')
 const fs = require('fs')
 
 
@@ -11,22 +10,7 @@ if ( conf_par !== undefined ) {
 }
 
 let conf = JSON.parse(fs.readFileSync(conf_file).toString())
-
-
-class SessionClusterServer extends SessionMidpoint {
-
-    constructor(conf) {
-        super(conf)
-    }
-
-    report_status() {
-        console.log(`Session Server: PORT: ${conf.port} ADDRESS: ${conf.address}`)
-        console.log("READY")
-    }
-
-}
-
-
+// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 process.on('SIGINT', async () => {
     try {
         process.exit(0)
@@ -37,5 +21,44 @@ process.on('SIGINT', async () => {
 });
 
 
-let cl_server = new SessionClusterServer(conf)
-cl_server.report_status()
+if ( conf.full_edge || conf.half_edge || (conf.edge_supported_relay === undefined) ) {
+
+    const SessionMidpoint = require('../lib/session_midpoint')
+
+    class SessionClusterServer extends SessionMidpoint {
+
+        constructor(conf) {
+            super(conf)
+        }
+    
+        report_status() {
+            console.log(`Session Server: PORT: ${conf.port} ADDRESS: ${conf.address}`)
+            console.log("READY")
+        }
+    
+    }
+    
+    let cl_server = new SessionClusterServer(conf)
+    cl_server.report_status()
+
+} else if ( conf.edge_supported_relay ) {
+
+    const SessionMidplex = require('../lib/session_midplex_relay')
+    class SessionClusterServer extends SessionMidplex {
+
+        constructor(conf) {
+            super(conf)
+        }
+    
+        report_status() {
+            console.log(`Session Server: PORT: ${conf.port} ADDRESS: ${conf.address}`)
+            console.log("READY")
+        }
+    
+    }
+    
+    let cl_server = new SessionClusterServer(conf)
+    cl_server.report_status()
+
+}
+
