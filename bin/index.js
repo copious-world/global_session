@@ -1,15 +1,14 @@
 #!/usr/bin/env node
+//
+const {conf_loader} = require("../lib/utils")
 
-const fs = require('fs')
+let conf = conf_loader(process.argv[2],'session-service.conf')
+console.dir(conf)
 
-
-let conf_file = 'session-service.conf'
-let conf_par = process.argv[2]
-if ( conf_par !== undefined ) {
-    conf_file = conf_par
+if ( conf === false ) {
+    console.log("failed to load configuration")
 }
 
-let conf = JSON.parse(fs.readFileSync(conf_file).toString())
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 process.on('SIGINT', async () => {
     try {
@@ -43,8 +42,14 @@ if ( conf.full_edge || conf.half_edge || (conf.edge_supported_relay === undefine
 
 } else if ( conf.edge_supported_relay ) {
 
-    const SessionMidplex = require('../lib/session_midplex_relay')
-    class SessionClusterServer extends SessionMidplex {
+    let FanoutClass = false
+    if ( typeof conf.custom_fanout_relayer === "string" ) {
+        FanoutClass = require(conf.custom_fanout_relayer)
+    }
+
+    const {inject_path_handler,ServeMessageRelay} = require('../lib/session_midplex_relay')
+    inject_path_handler(conf)
+    class SessionClusterServer extends ServeMessageRelay {
 
         constructor(conf) {
             super(conf)
@@ -57,7 +62,7 @@ if ( conf.full_edge || conf.half_edge || (conf.edge_supported_relay === undefine
     
     }
     
-    let cl_server = new SessionClusterServer(conf)
+    let cl_server = new SessionClusterServer(conf,FanoutClass)
     cl_server.report_status()
 
 }

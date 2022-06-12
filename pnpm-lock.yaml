@@ -1,16 +1,14 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
   ftok: ^1.0.0
-  global_session: 'link:'
-  message-relay-services: ^0.5.3
-  shm-lru-cache: ^0.0.3
+  message-relay-services: ^0.5.4
+  shm-lru-cache: ^0.0.7
 
 dependencies:
   ftok: 1.0.0
-  global_session: 'link:'
-  message-relay-services: 0.5.3
-  shm-lru-cache: 0.0.3
+  message-relay-services: 0.5.4
+  shm-lru-cache: 0.0.7
 
 packages:
 
@@ -18,33 +16,33 @@ packages:
     resolution: {integrity: sha512-hxrvQ3AZHbRy9VF0bp6968Ajuj5IoR4rxOVz18X79Gl2lvM4TIsDCGorvkmok3L3016DfvX4Oj50raQdXRuO/A==}
     dev: false
 
-  /message-relay-services/0.5.3:
-    resolution: {integrity: sha512-4xVOsJuonCpdBnOOq2PGod+kci8SGendiiwoOfT+x9ok7hGtdCkKa9poxu9p+6gymrTtxfQs/JuR4QIKMmJMew==}
+  /message-relay-services/0.5.4:
+    resolution: {integrity: sha512-FxsdhXAlbpLyX5rxI06dzvR3+PkG+/MktKHIRE8M/+T4bsWYUQZbnYyIEJuZQVBfLqdCKcA852riZVDmcrHuyw==}
     dev: false
 
-  /nan/2.15.0:
-    resolution: {integrity: sha512-8ZtvEnA2c5aYCZYd1cvgdnU6cqwixRoYg70xPLWUws5ORTa/lnw+u4amixRS/Ac5U5mQVgp9pnlSUnbNWFaWZQ==}
+  /nan/2.16.0:
+    resolution: {integrity: sha512-UdAqHyFngu7TfQKsCBgAA6pWDkT8MAO7d0jyOecVhN5354xbLqdn8mV9Tat9gepAupm0bt2DbeaSC8vS52MuFA==}
     dev: false
 
-  /shm-lru-cache/0.0.3:
-    resolution: {integrity: sha512-EzTTztDj8Q872r+QxxOo5Jtl3DlP8shtzv8Jjppl7cL6llOW9xTVwqdri3R0tDxadA75biX/mNkjtpO6bfiZEg==}
+  /shm-lru-cache/0.0.7:
+    resolution: {integrity: sha512-QMEC03NSUTir9QeSDLa00JlIyeIYt1nyYG1aAEaHzEtpvtzakAqZs2jwfP1ZqgnSzOMB7CO31WTy5TAI3N8Fiw==}
     dependencies:
       ftok: 1.0.0
-      shm-typed-lru: 0.0.4
-      xxhash-addon: 1.4.0
+      shm-typed-lru: 0.1.0
+      xxhash-addon: 1.5.0
     dev: false
 
-  /shm-typed-lru/0.0.4:
-    resolution: {integrity: sha512-T//2yn0h+dE4maz0YsriuM9FQXyWHyJlDyIw42AAImW8p+9h8Czg9jyXuGEfGuM2GOhhG+ROfnR7DD7F50oa8w==}
+  /shm-typed-lru/0.1.0:
+    resolution: {integrity: sha512-dgBVT4QV/xoq0tAhg68ydOXjLfqITeUca65xdGAmpm3LmPwmJ1SoLkT88U78C8Z/EddwTUYH0dxsgdQdUVvfqA==}
     engines: {node: '>=4.0.0'}
     os: ['!win32']
     requiresBuild: true
     dependencies:
-      nan: 2.15.0
+      nan: 2.16.0
     dev: false
 
-  /xxhash-addon/1.4.0:
-    resolution: {integrity: sha512-n3Ml0Vgvy7jMYJBlQIoFLjYxXNZQ5CbzW8E2Ynq2QCUpWMqCouooW7j02+7Oud5FijBuSrjQNuN/fCiz1SHN+w==}
+  /xxhash-addon/1.5.0:
+    resolution: {integrity: sha512-ZkfBZMrrpbyT8/uw7x+2voPBXO2oczajlGo11+OOO1YqGbk6DuF7erwirCUPvydN17lEjilu3VGDWWG4+fV45Q==}
     engines: {node: '>=8.6.0 <9.0.0 || >=10.0.0'}
     requiresBuild: true
     dev: false
