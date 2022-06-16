@@ -1,19 +1,22 @@
 const fs = require('fs')
 const {spawn} = require('child_process')
+const {conf_loader} = require('../lib/utils')
 
 
 
-
-
+// ----
 let conf_file = process.argv[2]
-let conf_str = fs.readFileSync(conf_file)
-let conf = JSON.parse(conf_str)
+let default_path = './test/ml_relay.conf'
+let conf = conf_loader(conf_file,default_path)
+
+if ( conf_file === undefined ) conf_file = default_path
 
 console.log("conf file")
 console.dir(conf)
 console.log(process.cwd())
 
 
+// Uses the static path chosen by config... field -> edge_supported_relay
 let mid_lru = spawn('node',['./bin/index', conf_file])
 
 mid_lru.stdout.on('data', (data) => {

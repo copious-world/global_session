@@ -1,20 +1,100 @@
 const {MessageRelayer} = require('message-relay-services')
 const {make_process_identifier} = require('./utils')
-const LRUManager = require('./lru_manager')
+const LRU = require('shm-lru-cache')
+const {fix_path,conf_loader} = require('./utils')
+
+
+let test_conf = conf_loader(conf_path,default_path)
+let test_list = []
 
 // A client of a global session endpoint
 
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-
 const DFLT_SLOW_MESSAGE_QUERY_INTERVAL = 5000
 const DFLT_FAST_MESSAGE_QUERY_INTERVAL = 1000
-
-
+// ---- ---- ---- ---- ---- ---- ---- ---- ----
 const SESSION_GENERATION_PUB = "session"
 const WANT_SESSION_FOR_ID = "need_session"
 const APPRISE_SESSION_IN_RESPONSE = "session_known"
 const SESSION_ALREADY_RECEIVED = "session_received"
 
+
+class FAUX_FOR_TEST_LRUManager {
+    //
+    constructor(conf) {
+        //
+        conf.module_path = conf.module_path.replace('/lib','')
+        conf.module_path  = fix_path(conf.module_path)
+        conf.cache.module_path = conf.module_path
+
+        conf.cache._test_use_no_memory = true  /// LINE ADDED FOR TEST
+        //
+        this.cache = new LRU(conf.cache)
+        this.in_operation = true
+        this.conf = conf
+        //
+      }
+    
+      initialize(conf) {
+      }
+    
+      //
+      set(key,value) {
+        let sdata = ( typeof value !== 'string' ) ? JSON.stringify(value) : value
+        let augmented_hash_token = this.cache.hash(key)
+        this.cache.set(augmented_hash_token, sdata)   // store in the LRU cache
+        return(augmented_hash_token)    // return the derived key
+      }
+    
+      set_with_token(token,value) {
+        let sdata = ( typeof value !== 'string' ) ? JSON.stringify(value) : value
+        this.cache.set(token, sdata)   // store in the LRU cache
+      }
+    
+      hash_set(key,value) {
+        let sdata = ( typeof value !== 'string' ) ? JSON.stringify(value) : value
+        let augmented_hash_token = this.cache.hash(key)
+        let hh_unidentified = this.cache.hasher(sdata)
+        this.cache.set(augmented_hash_token, hh_unidentified)   // store in the LRU cache
+        return(hh_unidentified)    // return the derived key
+      }
+    
+      check_hash(hh_unid,value) {
+        let sdata = ( typeof value !== 'string' ) ? JSON.stringify(value) : value
+        let hh_unidentified = this.cache.hasher(sdata)
+        return hh_unidentified === hh_unid
+      }
+      
+      //
+      delete(key) { // token must have been returned by set () -> augmented_hash_token
+        let augmented_hash_token = this.cache.hash(key)
+        this.cache.del(augmented_hash_token)
+      }
+    
+      //
+      get(key) {    // token must have been returned by set () -> augmented_hash_token
+        let augmented_hash_token = this.cache.hash(key)
+        let value = false
+        if ( typeof value !== 'string' ) {
+          return false
+        }
+        return value
+      }
+  
+      get_with_token(token) {
+          let value = this.cache.get(token)
+          if ( typeof value !== 'string' ) {
+            return false
+          }
+          return value  
+      }
+  
+      //
+      disconnect(opt) {
+        this.in_operation = false
+        return this.cache.disconnect(opt)
+      }
+}
 
 /*
 {
@@ -46,7 +126,7 @@ class SessionCacheManager {
     this.conf = lru_conf
     this.process_identifier = make_process_identifier()
     //
-    this._LRUManager = new LRUManager(lru_conf);
+    this._LRUManager = new FAUX_FOR_TEST_LRUManager(lru_conf);
     this.message_fowarding = (message_relays !== undefined) ? new MessageRelayer(message_relays) : false
     this._all_senders = []
     //
@@ -59,15 +139,6 @@ class SessionCacheManager {
     this._want_key_handlers = {}
   }
 
-  get_LRUManager() {
-    return(this._LRUManager)
-  }
-
-  client_going_down() {
-    if ( this._LRUManager.in_operation ) {
-      this._LRUManager.disconnect()
-    }
-  }
 
   // ---- ---- ---- ---- ---- ---- ---- ----
   post_message(msgObject) {
@@ -123,7 +194,8 @@ class SessionCacheManager {
 
   async get(key) {    // token must have been returned by set () -> augmented_hash_token
     let lru_m = this._LRUManager
-    let value = await lru_m.get(key)
+    let value = lru_m.get(key)      // test no async
+    //
     if ( !value && this.message_fowarding ) {
       this.want_key_trace(key)
       let message = {
@@ -137,18 +209,22 @@ class SessionCacheManager {
           let value = resp.value
           let token = resp.hash       // store in local cash
           if ( this.still_want_session(key,token) ) {
-            lru_m.set_with_token(token,value)
+            //lru_m.set_with_token(token,value)
           }    
-          return value
+          return [token,value]
         }
       }
-      return false
+      return [false,value]
     }
-    return value
+    return [false,value]
   }
 
   set(key,value) {
     let augmented_hash_token = this._LRUManager.set(key,value)  // in local hash 
+    //
+    // TEST LINE
+    test_list.push([augmented_hash_token, key,value])
+    //
     if ( this.section_manager && this.message_fowarding ) {
       //
       let message = {
@@ -264,4 +340,38 @@ class SessionCacheManager {
 }
 
 
-module.exports = SessionCacheManager;
+
+function gen_next_kv_pair() {
+
+}
+
+
+
+async function run_test() {
+    let cache_manager = new SessionCacheManager(test_conf.lru,test_conf.message_relay)
+
+    // ---- 
+    let n = parseInt(test_conf.max_messages)
+    for ( let i = 0; i < n; n++ ) {
+        let [key,value] = gen_next_kv_pair()
+        cache_manager.set(key,value)
+    }
+    
+    for ( let i = 0; i < n; n++ ) {
+        let [key,value] = gen_next_kv_pair()
+        cache_manager.set(key,value)
+    }
+    
+    for ( let i = 0; i < test_conf.test_query_count; i++ ) {
+        let [hash,key,value] = test_list.shift()
+        let [restored_hash,restored_value] = await cache_manager.get(key)
+        // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+        check(hash,restored_hash)
+        check(value,restored_value)
+    }
+    
+}
+
+
+
+run_test()

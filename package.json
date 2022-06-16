@@ -33,6 +33,6 @@
   "dependencies": {
     "ftok": "^1.0.0",
     "message-relay-services": "^0.5.4",
-    "shm-lru-cache" : "^0.0.7"
+    "shm-lru-cache" : "^0.0.8"
   }
 }
