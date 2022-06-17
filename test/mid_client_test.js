@@ -23,10 +23,15 @@ class FAUX_FOR_TEST_LRUManager {
     //
     constructor(conf) {
         //
-        conf.module_path = conf.module_path.replace('/lib','')
-        conf.module_path  = fix_path(conf.module_path)
-        conf.cache.module_path = conf.module_path
-
+        if ( conf.module_path !== undefined ) {
+          conf.module_path = conf.module_path.replace('/lib','')
+          conf.module_path  = fix_path(conf.module_path)
+          conf.cache.module_path = conf.module_path  
+        }
+        if ( conf.token_path !== undefined && conf.cache.token_path === undefined ) {
+          conf.cache.token_path = conf.token_path
+        }
+        //
         conf.cache._test_use_no_memory = true  /// LINE ADDED FOR TEST
         //
         this.cache = new LRU(conf.cache)
@@ -132,7 +137,7 @@ class SessionCacheManager {
     //
     this.section_manager = lru_conf.manage_section 
     if ( (lru_conf.manage_section !== false) && (this.message_fowarding !== false) ) {
-      this.setup_auth_path_subscription()
+      this.#setup_auth_path_subscription()
     }
     //
     this._want_keyed = {}
@@ -151,10 +156,10 @@ class SessionCacheManager {
   }
 
 
-
+  // ---- ---- ---- ---- ---- ---- ---- ----
   mark_session_sent(proc_id,key) {
-
   }
+
 
   session_sent(proc_id,key) {
     return false
@@ -241,7 +246,7 @@ class SessionCacheManager {
     return this._LRUManager.check_hash(hh_unid,value)
   }
 
-  setup_auth_path_subscription() {
+  #setup_auth_path_subscription() {
 
     if ( this.message_fowarding === false ) return
 
