@@ -56,8 +56,8 @@ if ( conf.full_edge || conf.half_edge || (conf.edge_supported_relay === undefine
     //
     class SessionClusterServer extends ServeMessageRelay {
 
-        constructor(conf) {
-            super(conf)
+        constructor(conf,FanoutClass) {
+            super(conf,FanoutClass)
         }
     
         report_status() {

@@ -6,7 +6,7 @@ const {conf_loader} = require('../lib/utils')
 
 // ----
 let conf_file = process.argv[2]
-let default_path = './test/ml_relay.conf'
+let default_path = './test/mid_relay.conf'
 let conf = conf_loader(conf_file,default_path)
 
 if ( conf_file === undefined ) conf_file = default_path

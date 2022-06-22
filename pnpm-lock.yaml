@@ -2,13 +2,13 @@ lockfileVersion: 5.4
 
 specifiers:
   ftok: ^1.0.0
-  message-relay-services: ^0.5.4
-  shm-lru-cache: ^0.0.8
+  message-relay-services: ^0.6.4
+  shm-lru-cache: ^0.0.9
 
 dependencies:
   ftok: 1.0.0
-  message-relay-services: 0.5.4
-  shm-lru-cache: 0.0.8
+  message-relay-services: 0.6.4
+  shm-lru-cache: 0.0.9
 
 packages:
 
@@ -16,16 +16,16 @@ packages:
     resolution: {integrity: sha512-hxrvQ3AZHbRy9VF0bp6968Ajuj5IoR4rxOVz18X79Gl2lvM4TIsDCGorvkmok3L3016DfvX4Oj50raQdXRuO/A==}
     dev: false
 
-  /message-relay-services/0.5.4:
-    resolution: {integrity: sha512-FxsdhXAlbpLyX5rxI06dzvR3+PkG+/MktKHIRE8M/+T4bsWYUQZbnYyIEJuZQVBfLqdCKcA852riZVDmcrHuyw==}
+  /message-relay-services/0.6.4:
+    resolution: {integrity: sha512-BciSqqp90rjlTYQQe5UbHQk6Fv3hUpNoBftmiT0uiMhzJIbQ6Kwal2e3EMBN+8xdZi7g02nf5WsQORykFJgm+w==}
     dev: false
 
   /nan/2.16.0:
     resolution: {integrity: sha512-UdAqHyFngu7TfQKsCBgAA6pWDkT8MAO7d0jyOecVhN5354xbLqdn8mV9Tat9gepAupm0bt2DbeaSC8vS52MuFA==}
     dev: false
 
-  /shm-lru-cache/0.0.8:
-    resolution: {integrity: sha512-dk4CUNMivm9CAh4aMJgnAbLqMFUpDFoYqsEKWyDn4G1xatgLZz/iEs4cxiN4dsXAttrHGKl0U3mI29v6B+bLTw==}
+  /shm-lru-cache/0.0.9:
+    resolution: {integrity: sha512-tQqou3z0R1pWr5cwbfcKvIRUIn8RRLB/JZ8PbaY2qrWzyMq4srJPfJ/LXLzNjl2s4mjl++I0ywHL7O/DBzeEsQ==}
     dependencies:
       ftok: 1.0.0
       shm-typed-lru: 0.1.0

@@ -1,11 +1,21 @@
 const {MessageRelayer} = require('message-relay-services')
-const {make_process_identifier} = require('./utils')
+const {make_process_identifier} = require('../lib/utils')
 const LRU = require('shm-lru-cache')
-const {fix_path,conf_loader} = require('./utils')
+const {fix_path,conf_loader} = require('../lib/utils')
 
+
+
+let conf_path = process.argv[2]
+let default_path = './test/mid-client.conf'
 
 let test_conf = conf_loader(conf_path,default_path)
 let test_list = []
+
+
+if ( test_conf === false ) {
+  console.log("NO configuration")
+  process.exit(1)
+}
 
 // A client of a global session endpoint
 
@@ -130,6 +140,7 @@ class SessionCacheManager {
     //
     this.conf = lru_conf
     this.process_identifier = make_process_identifier()
+//
     //
     this._LRUManager = new FAUX_FOR_TEST_LRUManager(lru_conf);
     this.message_fowarding = (message_relays !== undefined) ? new MessageRelayer(message_relays) : false
@@ -137,6 +148,7 @@ class SessionCacheManager {
     //
     this.section_manager = lru_conf.manage_section 
     if ( (lru_conf.manage_section !== false) && (this.message_fowarding !== false) ) {
+  console.log("SUBSCRIBING")
       this.#setup_auth_path_subscription()
     }
     //
@@ -353,8 +365,13 @@ function gen_next_kv_pair() {
 
 
 async function run_test() {
+
+
+    console.log("STARTING TEST")
+
     let cache_manager = new SessionCacheManager(test_conf.lru,test_conf.message_relay)
 
+    /*
     // ---- 
     let n = parseInt(test_conf.max_messages)
     for ( let i = 0; i < n; n++ ) {
@@ -374,7 +391,7 @@ async function run_test() {
         check(hash,restored_hash)
         check(value,restored_value)
     }
-    
+    */
 }
 
 
