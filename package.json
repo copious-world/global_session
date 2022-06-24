@@ -32,7 +32,7 @@
   "homepage": "https://github.com/copious-world/global_session#readme",
   "dependencies": {
     "ftok": "^1.0.0",
-    "message-relay-services": "^0.6.4",
-    "shm-lru-cache" : "^0.0.9"
+    "message-relay-services": "^0.6.7",
+    "shm-lru-cache" : "^0.1.3"
   }
 }

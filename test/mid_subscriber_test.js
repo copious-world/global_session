@@ -1,4 +1,4 @@
-
+const {conf_loader} = require('../lib/utils')
 
 let SiblingServerClass = require('../lib/session_mid_sibling')
 let conf = conf_loader(process.argv[2],'./test/mid_relay-sibling.conf')

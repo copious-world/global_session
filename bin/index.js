@@ -2,7 +2,14 @@
 //
 const {conf_loader} = require("../lib/utils")
 
-let conf = conf_loader(process.argv[2],'session-service.conf')
+
+let cpath = process.argv[2]
+if ( cpath === "--inspect-brk" ) {
+    cpath = process.argv[3]
+}
+
+//
+let conf = conf_loader(cpath,'session-service.conf')
 console.dir(conf)
 
 if ( conf === false ) {
