@@ -6,7 +6,7 @@ const {fix_path,conf_loader} = require('../lib/utils')
 
 
 let conf_path = process.argv[2]
-let default_path = './test/mid-client.conf'
+let default_path = './test/ml_endpoint_1.conf'
 
 let test_conf = conf_loader(conf_path,default_path)
 let test_list = []
@@ -25,21 +25,6 @@ process.on('SIGINT',() => {
 
 // A client of a global session endpoint
 
-
-class FAUX_LRU extends LRU {
-  constructor(conf) {
-    super(conf)
-
-    this.count = 253
-    this.proc_index = -1
-
-  }
-
-
-
-}
-
-
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 const DFLT_SLOW_MESSAGE_QUERY_INTERVAL = 5000
 const DFLT_FAST_MESSAGE_QUERY_INTERVAL = 1000
@@ -48,6 +33,7 @@ const SESSION_GENERATION_PUB = "session"
 const WANT_SESSION_FOR_ID = "need_session"
 const APPRISE_SESSION_IN_RESPONSE = "session_known"
 const SESSION_ALREADY_RECEIVED = "session_received"
+const SESSION_OVERFLOW = "session_backup"
 
 
 class FAUX_FOR_TEST_LRUManager {
@@ -65,7 +51,7 @@ class FAUX_FOR_TEST_LRUManager {
         //
         conf.cache._test_use_no_memory = true  /// LINE ADDED FOR TEST
         //
-        this.cache = new FAUX_LRU(conf.cache)
+        this.cache = new LRU(conf.cache)
         this.in_operation = true
         this.conf = conf
         //
@@ -181,17 +167,6 @@ class SessionCacheManager {
 
 
   // ---- ---- ---- ---- ---- ---- ---- ----
-  post_message(msgObject) {
-    if ( this.message_fowarding ) {
-      if ( msgObject.m_path === undefined ) {
-        msgObject.m_path = SESSION_GENERATION_PUB
-      }
-      this.message_fowarding.sendMessage(msgObject)  
-    }
-  }
-
-
-  // ---- ---- ---- ---- ---- ---- ---- ----
   mark_session_sent(proc_id,key) {
   }
 
@@ -235,48 +210,14 @@ class SessionCacheManager {
   async get(key) {    // token must have been returned by set () -> augmented_hash_token
     let lru_m = this._LRUManager
     let value = lru_m.get(key)      // test no async
-    //
-    if ( !value && this.message_fowarding ) {
-      this.want_key_trace(key)
-      let message = {
-        "key" : key,
-        "requester" : this.process_identifier
-      }
-      let resp = await this.message_fowarding.publish(WANT_SESSION_FOR_ID,this.conf.auth_path,message)
-      if ( resp ) {
-        if ( resp.key === key ) {
-          let key = resp.key
-          let value = resp.value
-          let token = resp.hash       // store in local cash
-          if ( this.still_want_session(key,token) ) {
-            //lru_m.set_with_token(token,value)
-          }    
-          return [token,value]
-        }
-      }
-      return [false,value]
-    }
-    return [false,value]
+    return [key,value]
   }
 
-  async set(key,value) {
+  set(key,value) {
     let augmented_hash_token = this._LRUManager.set(key,value)  // in local hash 
     //
     // TEST LINE
     test_list.push([augmented_hash_token, key,value])
-    //
-    if ( this.section_manager && this.message_fowarding ) {
-      //
-      let message = {
-        "key" : key,
-        "value" : value,
-        "hash" : augmented_hash_token
-      }
-      // Tell all subscribers that a new session has been created  (remote the session information)
-      let test_respo = await this.message_fowarding.publish(SESSION_GENERATION_PUB,this.conf.auth_path,message)
-      console.log("set publish(SESSION_GENERATION_PUB result:")
-      console.dir(test_respo)
-    }
   }
 
   check_hash(hh_unid,value) {
@@ -293,20 +234,20 @@ class SessionCacheManager {
     let lru_m = this._LRUManager
     let self = this
 
-    let proc_id = this.process_identifier
-
+  
+    // subscribe to sessions that are coming from overflow, especially high traffic eviction
+    //
     // All clients may publish a generation of ID, although usually just one machine will actively do so. 
     // Still all will respond. 
     let handler = (msg) => {  // If receiving news, just set it locally using the generated hash
       let value = msg.value
       let token = msg.hash
-      lru_m.set_with_token(token,value)
+      lru_m.set_with_token(token,value)   // put the thing in here
     }
-    let resp = await this.message_fowarding.subscribe(SESSION_GENERATION_PUB,this.conf.auth_path,message,handler)
+    let resp = await this.message_fowarding.subscribe(SESSION_OVERFLOW,this.conf.auth_path,message,handler)
     console.dir(resp)
     //
     // 
-
     message = {}
     handler = (msg) => {
       let key = msg.key
@@ -322,126 +263,34 @@ class SessionCacheManager {
     resp = await this.message_fowarding.subscribe(WANT_SESSION_FOR_ID,this.conf.auth_path,message,handler)
     console.dir(resp)
     //
-    //
-    message = {}
-    handler = (msg) => {
-      let key = msg.key
-      let value = msg.value
-      let token = msg.hash
-      if ( self.still_want_session(key,token) ) {
-        lru_m.set_with_token(token,value)
-      }
-    }
-    let targeted_path = `${APPRISE_SESSION_IN_RESPONSE}-${proc_id}`
-    resp = await this.message_fowarding.subscribe(targeted_path,this.conf.auth_path,message,handler)
-    console.dir(resp)
-    //
-    //
-    message = {}
-    handler = (msg) => {
-      let key = msg.key
-      let proc_id = msg.requester
-      self.mark_session_sent(proc_id,key)
-    }
-    resp = await this.message_fowarding.subscribe(SESSION_ALREADY_RECEIVED,this.conf.auth_path,message,handler)
-    console.dir(resp)
-
   }
 
   
-
-
-  add_message_handler(m_handler,q_holder,prf_slow,prf_fast) {
-
-    if ( m_handler === undefined ) return;
-    let handler = m_handler
-    if ( q_holder === undefined ) return;
-    let _q = q_holder
-    let slow = DFLT_SLOW_MESSAGE_QUERY_INTERVAL
-    if ( prf_slow !== undefined ) slow = prf_slow;
-    let fast = DFLT_FAST_MESSAGE_QUERY_INTERVAL
-    if ( prf_slow !== undefined ) fast = prf_fast;
-
-    let sender_index = this._all_senders.length
-
-    let message_sender = async () => {
-        let m_snder = this._all_senders[sender_index]
-        if ( m_snder ) {
-            if ( _q.empty_queue() ) {
-                setTimeout(() => { m_snder() }, slow )
-            } else {
-                //
-                while ( !(_q.empty_queue()) ) {
-                  let datum = _q.get_work()
-                  let msgObject = handler(datum)
-                  await this.post_message(msgObject)   // message to admin
-                }
-                setTimeout(() => { m_snder() }, fast )
-            }    
-        }
-    }
-
-    this._all_senders.push(message_sender)
-
-    setTimeout(message_sender,slow)
-
-  }
 
 }
 
 
 
 function gen_next_kv_pair() {
-  let r = 0
-  while ( r === 0 ) {
-    r = Math.random()
-  }
-  let k = '' + Math.trunc(r*1000)
-  let v = "{some information about someone}"
-  return [k,v]
+
 }
 
 
 
 async function run_test() {
 
+
     console.log("STARTING TEST")
 
     let cache_manager = new SessionCacheManager(test_conf.lru,test_conf.message_relay)
 
-    cache_manager.message_fowarding.on('client-ready',async (address,port) => {
-      console.log("client-ready",address,port)
-      console.log("sending a message sooner: " + cache_manager.conf.auth_path)
-      let resp = await cache_manager.message_fowarding.send_op_on_path({
-        "_exec_op" : "test-from client ready"
-      },cache_manager.conf.auth_path,'C')  
-      console.log('client-ready response',resp)
-    })
-
-    let p = new Promise((resolve,reject) => {
-      setTimeout(async () => {
-        console.log("sending a message: " + cache_manager.conf.auth_path)
-        let resp = await cache_manager.message_fowarding.send_op_on_path({
-          "_exec_op" : "test-this is what it is"
-        },cache_manager.conf.auth_path,'C')  
-        console.log(resp)
-        resolve(true)
-      },5000  
-    )})
-
-
-    await p
+    /*
     // ---- 
     let n = parseInt(test_conf.max_messages)
-    console.log(`sending ${n} messages`)
-    for ( let i = 0; i < n; i++ ) {
+    for ( let i = 0; i < n; n++ ) {
         let [key,value] = gen_next_kv_pair()
-        await cache_manager.set(key,value)
-        console.log(`key ${key} .. i ${i}`)
+        cache_manager.set(key,value)
     }
-    console.log(`sent ${n} messages`)
-
-    /*
     
     for ( let i = 0; i < n; n++ ) {
         let [key,value] = gen_next_kv_pair()

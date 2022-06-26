@@ -2,12 +2,12 @@ lockfileVersion: 5.4
 
 specifiers:
   ftok: ^1.0.0
-  message-relay-services: ^0.6.7
+  message-relay-services: ^0.6.8
   shm-lru-cache: ^0.1.3
 
 dependencies:
   ftok: 1.0.0
-  message-relay-services: 0.6.7
+  message-relay-services: 0.6.8
   shm-lru-cache: 0.1.3
 
 packages:
@@ -16,8 +16,8 @@ packages:
     resolution: {integrity: sha512-hxrvQ3AZHbRy9VF0bp6968Ajuj5IoR4rxOVz18X79Gl2lvM4TIsDCGorvkmok3L3016DfvX4Oj50raQdXRuO/A==}
     dev: false
 
-  /message-relay-services/0.6.7:
-    resolution: {integrity: sha512-G1WhTqetsFRE+IMq9pyXgHS+6XCODruTy+8seZldwb5NrxgAxhCYpDejcWNuyM2vDcN4jn0xyx20jbuFxkPnhQ==}
+  /message-relay-services/0.6.8:
+    resolution: {integrity: sha512-ECqSJqW1GMBQrNZD+kNB1SG3y+G1gZzMSdB9N7Ehh8b7j2zm8fhVKRTd9FgxFFgrVuvLYEIEc8M7DVd1qFdbdw==}
     dev: false
 
   /nan/2.16.0:
