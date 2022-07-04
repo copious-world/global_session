@@ -16,7 +16,8 @@ console.log(process.cwd())
 
 
 // Uses the static path chosen by config... field -> edge_supported_relay
-let mid_lru = spawn('node',[ './test/mid-test.js', conf_file])  // '--inspect-brk',
+//let mid_lru = spawn('node',[  '--inspect-brk', './test/mid-test.js', conf_file])  //
+let mid_lru = spawn('node',[ './test/mid-test.js', conf_file])  //
 
 mid_lru.stdout.on('data', (data) => {
     let str = data.toString().trim()

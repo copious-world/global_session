@@ -9,7 +9,7 @@ let conf_path = process.argv[2]
 let default_path = './test/mid-client.conf'
 
 let test_conf = conf_loader(conf_path,default_path)
-let test_list = []
+let g_test_list = []
 
 
 if ( test_conf === false ) {
@@ -29,6 +29,9 @@ process.on('SIGINT',() => {
 class FAUX_LRU extends LRU {
   constructor(conf) {
     super(conf)
+
+console.log("FAUX_LRU")
+    console.dir(conf)
 
     this.count = 253
     this.proc_index = -1
@@ -72,6 +75,14 @@ class FAUX_FOR_TEST_LRUManager {
       }
     
       initialize(conf) {
+      }
+
+      pure_hash(key) {
+        return this.cache.pure_hash(key)
+      }
+
+      augment_hash(hash) {
+        return this.cache.augment_hash(hash)
       }
     
       //
@@ -131,6 +142,8 @@ class FAUX_FOR_TEST_LRUManager {
         return this.cache.disconnect(opt)
       }
 }
+
+
 
 /*
 {
@@ -217,15 +230,15 @@ class SessionCacheManager {
     this._want_keyed[key] = Date.now()
   }
 
-  still_want_session(key,token) {
+  still_want_session(token) {
     let now = Date.now()
-    let requested_when = this._want_keyed[key]
+    let requested_when = this._want_keyed[token]
     if ( requested_when === undefined ) false
     if ( (now - requested_when) < SUGGESTED_TIMEOUT ) {
-      this.application_notify_value(key)
+      this.application_notify_value(token)
       return true
     }
-    delete this._want_keyed[key]
+    delete this._want_keyed[token]
     return false
   }
 
@@ -238,18 +251,23 @@ class SessionCacheManager {
     //
     if ( !value && this.message_fowarding ) {
       this.want_key_trace(key)
+      let hash = lru_m.pure_hash(key)
       let message = {
-        "key" : key,
+        "hash" : hash,
         "requester" : this.process_identifier
       }
+      //
+console.log("publishing",message)
       let resp = await this.message_fowarding.publish(WANT_SESSION_FOR_ID,this.conf.auth_path,message)
+console.log(`get(${key})`)
+console.dir(resp)
       if ( resp ) {
-        if ( resp.key === key ) {
-          let key = resp.key
+        if ( resp.hash === hash ) {
           let value = resp.value
-          let token = resp.hash       // store in local cash
-          if ( this.still_want_session(key,token) ) {
-            //lru_m.set_with_token(token,value)
+          let hash = resp.hash       // store in local cash
+          let token = lru_m.augment_hash(hash)
+          if ( this.still_want_session(token) ) {
+            lru_m.set_with_token(token,value)
           }    
           return [token,value]
         }
@@ -259,23 +277,31 @@ class SessionCacheManager {
     return [false,value]
   }
 
+
+  // set in local cache and then publish (a publish -- not a send)
   async set(key,value) {
     let augmented_hash_token = this._LRUManager.set(key,value)  // in local hash 
     //
     // TEST LINE
-    test_list.push([augmented_hash_token, key,value])
+    g_test_list.push([augmented_hash_token, key,value])
     //
     if ( this.section_manager && this.message_fowarding ) {
       //
+      let hash = augmented_hash_token.split('-')[1]
       let message = {
         "key" : key,
         "value" : value,
-        "hash" : augmented_hash_token
+        "hash" : hash     // this is a pure hash
       }
       // Tell all subscribers that a new session has been created  (remote the session information)
+/*
       let test_respo = await this.message_fowarding.publish(SESSION_GENERATION_PUB,this.conf.auth_path,message)
       console.log("set publish(SESSION_GENERATION_PUB result:")
       console.dir(test_respo)
+*/
+
+      this.message_fowarding.publish(SESSION_GENERATION_PUB,this.conf.auth_path,message)
+      return augmented_hash_token
     }
   }
 
@@ -286,7 +312,6 @@ class SessionCacheManager {
   async setup_auth_path_subscription() {
 
     if ( this.message_fowarding === false ) return
-
 
     console.log("setup_auth_path_subscription :: ")
     let message = {}
@@ -316,6 +341,7 @@ class SessionCacheManager {
         msg.value = value // this is capable of responding so send it 
         let proc_id = msg.requester
         let targeted_topic = `${APPRISE_SESSION_IN_RESPONSE}-${proc_id}`
+console.log("publishing topic" + targeted_topic)
         self.message_fowarding.publish(targeted_topic,this.conf.auth_path,message)
       }
     }
@@ -325,14 +351,17 @@ class SessionCacheManager {
     //
     message = {}
     handler = (msg) => {
-      let key = msg.key
+      //let key = msg.key
       let value = msg.value
-      let token = msg.hash
-      if ( self.still_want_session(key,token) ) {
+      let hash = msg.hash
+      let token = lru_m.augment_hash(hash)
+console.log(APPRISE_SESSION_IN_RESPONSE + ` got a response from preasure relief ${token} ${value}`)
+      if ( self.still_want_session(token) ) {
         lru_m.set_with_token(token,value)
       }
     }
     let targeted_path = `${APPRISE_SESSION_IN_RESPONSE}-${proc_id}`
+console.log(`subscribing to ${targeted_path}`)
     resp = await this.message_fowarding.subscribe(targeted_path,this.conf.auth_path,message,handler)
     console.dir(resp)
     //
@@ -426,7 +455,7 @@ async function run_test() {
         },cache_manager.conf.auth_path,'C')  
         console.log(resp)
         resolve(true)
-      },5000  
+      },2000  
     )})
 
 
@@ -436,26 +465,42 @@ async function run_test() {
     console.log(`sending ${n} messages`)
     for ( let i = 0; i < n; i++ ) {
         let [key,value] = gen_next_kv_pair()
-        await cache_manager.set(key,value)
-        console.log(`key ${key} .. i ${i}`)
+        let aught = await cache_manager.set(key,value)
+        console.log(`key ${key} .. i ${i}  aht: ${aught}`)
     }
     console.log(`sent ${n} messages`)
 
-    /*
-    
-    for ( let i = 0; i < n; n++ ) {
-        let [key,value] = gen_next_kv_pair()
-        cache_manager.set(key,value)
-    }
-    
+ 
     for ( let i = 0; i < test_conf.test_query_count; i++ ) {
-        let [hash,key,value] = test_list.shift()
+        let [hash,key,value] = g_test_list.shift()
+  console.log("getting: ",key)
         let [restored_hash,restored_value] = await cache_manager.get(key)
+        //
+        console.log(`result of get ${key}`)
+        console.log(restored_hash)
+        console.log(restored_value)
         // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-        check(hash,restored_hash)
-        check(value,restored_value)
+        //check(hash,restored_hash)
+        //check(value,restored_value)
     }
-    */
+
+
+    let tst_key = '79131'
+    let tst_value = "{ we are testing our limits }"
+
+    let p2 = new Promise((resolve,reject) => {
+      setTimeout(async () => {
+        resolve(true)
+      },2000
+    )})
+
+    await p2
+    let [restored_hash2,restored_value2] = await cache_manager.get(tst_key)
+    //
+    console.log(`result of get ${tst_key}`)
+    console.log(restored_hash2)
+    console.log(restored_value2)
+
 }
 
 
