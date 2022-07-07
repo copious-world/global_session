@@ -35,8 +35,6 @@ class FAUX_LRU extends LRU {
 
   }
 
-
-
 }
 
 
@@ -298,6 +296,8 @@ class SessionCacheManager {
     // All clients may publish a generation of ID, although usually just one machine will actively do so. 
     // Still all will respond. 
     let handler = (msg) => {  // If receiving news, just set it locally using the generated hash
+      // in the buffering processes, one should filter newness.  The new sessions will already be close to the front.
+      // but, they can be backed up here.
       let value = msg.value
       let token = msg.hash
       lru_m.set_with_token(token,value)
@@ -305,6 +305,14 @@ class SessionCacheManager {
     let resp = await this.message_fowarding.subscribe(SESSION_GENERATION_PUB,this.conf.auth_path,message,handler)
     console.dir(resp)
     //
+
+    handler = (msg) => {  // If receiving news, just set it locally using the generated hash
+      let value = msg.value
+      let token = msg.hash
+      lru_m.set_with_token(token,value)
+    }
+    let resp = await this.message_fowarding.subscribe(SESSION_OVERFLOW,this.conf.auth_path,message,handler)
+    console.dir(resp)
     // 
 
     message = {}
@@ -374,18 +382,6 @@ console.log(targeted_topic)
 
   }
 
-}
-
-
-
-function gen_next_kv_pair() {
-  let r = 0
-  while ( r === 0 ) {
-    r = Math.random()
-  }
-  let k = '' + Math.trunc(r*1000)
-  let v = "{some information about someone}"
-  return [k,v]
 }
 
 
