@@ -5,19 +5,19 @@ let {SessionPathIntercept} = require('../lib/session_midway_relay')
 
 
 class Testable extends SessionPathIntercept {
-
     //
     constructor(path,path_conf,FanoutRelayerClass) {
         super(path,path_conf,FanoutRelayerClass)
         //
         this.maxout = path_conf.cache.el_count
-
-        if ( path_conf.which_test === 'fill-it' ) {
+        //
+        if ( path_conf.which_test === 'fill-it' || true ) {
+            let self = this
             path_conf.evictor = async (target_hash) => {
                 let result = await self.send({
                     "_tx_op" : "C",
                     "_exec_op"  : "evictions-forward",
-                    "like_this" : target_hash
+                    "conflict" : target_hash
                 })
                 return result
             }
@@ -32,7 +32,6 @@ class Testable extends SessionPathIntercept {
         }
 
         this._LRUManager.initialize(path_conf)
-
 
 console.log("Testable")
 console.dir(path_conf)
