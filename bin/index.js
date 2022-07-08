@@ -29,12 +29,12 @@ process.on('SIGINT', async () => {
 
 if ( conf.full_edge || conf.half_edge || (conf.edge_supported_relay === undefined) ) {
 
-    const SessionMidpoint = require('../lib/session_preasure_relief')
+    const SessionPreasureRelief = require('../lib/session_preasure_relief')
 
-    class SessionClusterServer extends SessionMidpoint {
+    class SessionClusterServer extends SessionPreasureRelief {
 
         constructor(conf) {
-            super(conf)
+            super(conf.lru,conf.message_relay)
         }
     
         report_status() {
