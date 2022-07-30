@@ -355,7 +355,7 @@ console.log("publishing topic" + targeted_topic)
       let value = msg.value
       let hash = msg.hash
       let token = lru_m.augment_hash(hash)
-console.log(APPRISE_SESSION_IN_RESPONSE + ` got a response from preasure relief ${token} ${value}`)
+console.log(APPRISE_SESSION_IN_RESPONSE + ` got a response from pressure relief ${token} ${value}`)
       if ( self.still_want_session(token) ) {
         lru_m.set_with_token(token,value)
       }

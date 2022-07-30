@@ -29,7 +29,7 @@ process.on('SIGINT', async () => {
 
 if ( conf.full_edge || conf.half_edge || (conf.edge_supported_relay === undefined) ) {
 
-    const SessionPreasureRelief = require('../lib/session_preasure_relief')
+    const SessionPreasureRelief = require('../lib/session_pressure_relief')
 
     class SessionClusterServer extends SessionPreasureRelief {
 

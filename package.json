@@ -1,6 +1,6 @@
 {
   "name": "global_session",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A link between LRU and messaging to peers which may store or cache LRU entries remotely",
   "main": "index.js",
   "directories": {
