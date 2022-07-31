@@ -93,19 +93,19 @@ The communication objects that **global\_session** uses can be configured to use
 
 ```
 {
-    "edge_supported_relay" : true,
-    "auth_path" : "auths",
-    "port" : 7878,
-    "address" : "localhost",
+ 	"edge_supported_relay" : true,
+	"auth_path" : "auths",
+	"port" : 7878,
+	"address" : "localhost",
+	"tls" : {
+        "server_key" : "keys/ec_key.pem",
+        "server_cert" : "keys/ec_crt.crt",
+        "client_cert" : "keys/cl_ec_crt.crt"
+ 	 },
     "path_types" : {
         "auths" : {
             "relay" : {
                 "proc_name" : "./test/mid_sibling_test.js",
-	             "tls" : {
-			            "server_key" : "keys/ec_key.pem",
-			            "server_cert" : "keys/ec_crt.crt",
-			            "client_cert" : "keys/cl_ec_crt.crt"
-			       }
             },
             "cache" : {
                 "token_path" : "./test/ml_relay.conf",
