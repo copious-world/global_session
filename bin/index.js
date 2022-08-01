@@ -27,7 +27,7 @@ process.on('SIGINT', async () => {
 });
 
 
-if ( conf.full_edge || conf.half_edge || (conf.edge_supported_relay === undefined) ) {
+if ( conf.full_edge || ((conf.half_edge === undefined) && (conf.edge_supported_relay === undefined)) ) {
 
     const SessionPreasureRelief = require('../lib/session_pressure_relief')
 
@@ -43,10 +43,30 @@ if ( conf.full_edge || conf.half_edge || (conf.edge_supported_relay === undefine
         }
     
     }
-    
+
     let cl_server = new SessionClusterServer(conf)
     cl_server.report_status()
 
+} else if ( conf.half_edge ) {
+
+    let SiblingServerClass = require('../lib/session_mid_sibling')   
+    
+    class SessionClusterServer extends SiblingServerClass {
+    
+        constructor(conf) {
+            super(conf)
+        }
+    
+        report_status() {
+            console.log(`Session Server: PORT: ${conf.port} ADDRESS: ${conf.address}`)
+            console.log("READY")
+        }
+    
+    }
+    
+    let cl_server = new SessionClusterServer(conf)
+    cl_server.report_status()
+    
 } else if ( conf.edge_supported_relay ) {
 
     // FanoutClass --> The kind of relay client, multi-path-relay, multi-client-relay or just a single client

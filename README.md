@@ -95,8 +95,8 @@ The communication objects that **global\_session** uses can be configured to use
 {
  	"edge_supported_relay" : true,
 	"auth_path" : "auths",
-	"port" : 7878,
-	"address" : "localhost",
+	"port" : 7878,    // <- set the port with your own number
+	"address" : "binding address",
 	"tls" : {
         "server_key" : "keys/ec_key.pem",
         "server_cert" : "keys/ec_crt.crt",
@@ -105,10 +105,10 @@ The communication objects that **global\_session** uses can be configured to use
     "path_types" : {
         "auths" : {
             "relay" : {
-                "proc_name" : "./test/mid_sibling_test.js",
+                "proc_name" : ["global_session", "./sibling.conf"]
             },
             "cache" : {
-                "token_path" : "./test/ml_relay.conf",
+                "token_path" : "./ml_relay.conf",
                 "am_initializer" : true,
                 "seed" : 9849381,
                 "record_size" : 384,
@@ -122,13 +122,51 @@ The communication objects that **global\_session** uses can be configured to use
 
 
 
+* Customization: **SessionPathIntercept** Decendant
+
+
 ### <u>Pressure Relief Services</u>
 
-have a nice day
+* **conf** is a JSON object loaded buy **global\_session**
+
+> **conf.half\_edge** = true,
+> 
+> The sibling server is an instance of **SessionMidpointSibling**. **SessionMidpointSibling** is in turn a descendant of classes from **message-relay-services**. The parent classes are **ServerWithIPC** and the **Server** defined as a message endpoint within **message-relay-services**.
+> 
+> The cofiguration passed up from  **SessionMidpointSibling** to its parents is used almost completely as a configuration for the endpoint server. The configuration is used in both the construction of the instance and in the initialization methods. **ServerWithIPC** just ensures that the IPC link to the relay service is set up. And, then it exposes itself to backend clients in the exact same manner as an endpoint server.
+> 
+> The endpoint server needs the port and address on which to server. And, it needs the tls configuration for secure transmitions.
+
+```
+{
+    "half_edge" : true,
+    "auth_path" : "auths",
+    "port" : 7880,
+    "address" : "localhost",
+	 "tls" : {
+        "server_key" : "keys/ec_key.pem",
+        "server_cert" : "keys/ec_crt.crt",
+        "client_cert" : "keys/cl_ec_crt.crt"
+ 	 },
+    "cache" : {
+        "token_path" : "./test/ml_relay.conf",
+        "am_initializer" : false,
+        "seed" : 9849381,
+        "record_size" : 384,
+        "el_count" : 20000,
+        "stop_child" : true
+    }
+}
+
+```
 
 ### <u>Client Side Configuration and Use</u>
 
-have a nice day
+* **conf** is a JSON object loaded buy **global\_session**
+
+> **conf.full\_edge** = true,
+
+
 
 
 ## Session Objects
