@@ -67,11 +67,10 @@ SSL/TLS provides secure transmission of message. It slows down the communication
 The communication objects that **global\_session** uses can be configured to use TLS. 
 
 
+### <u>Middle Tier Service</u>
 
-### <u>Middle Tier Services</u>
 
-
-* **conf** is a JSON object loaded buy **global\_session**
+* **conf** is a JSON object loaded by **global\_session**
 
 > **conf.edge\_supported\_relay** = true,
 > 
@@ -125,9 +124,9 @@ The communication objects that **global\_session** uses can be configured to use
 * Customization: **SessionPathIntercept** Decendant
 
 
-### <u>Pressure Relief Services</u>
+### <u>Sibling Endpoint Service</u>
 
-* **conf** is a JSON object loaded buy **global\_session**
+* **conf** is a JSON object loaded by **global\_session**
 
 > **conf.half\_edge** = true,
 > 
@@ -135,7 +134,13 @@ The communication objects that **global\_session** uses can be configured to use
 > 
 > The cofiguration passed up from  **SessionMidpointSibling** to its parents is used almost completely as a configuration for the endpoint server. The configuration is used in both the construction of the instance and in the initialization methods. **ServerWithIPC** just ensures that the IPC link to the relay service is set up. And, then it exposes itself to backend clients in the exact same manner as an endpoint server.
 > 
-> The endpoint server needs the port and address on which to server. And, it needs the tls configuration for secure transmitions.
+> The endpoint server needs the port and address on which to serve. And, it needs the tls configuration for secure transmitions.
+> 
+> The **SessionMidpointSibling** initializes itself to handle subscriptions and to attach to but not create cache. By handling subscriptions the server can intercept and respond with objects in cache, where those object have been placed in cache by the relay server. 
+> 
+> Notice that in the next example the auth path is defined. The auth path may be inserted into messages for publisher on the path. However, the endpoint does not use path handlers since it is an endpoint to a path. 
+> 
+> The cache information is the same as that of the relay server. Except, the field *am\_initializer* is set to **false**.
 
 ```
 {
@@ -149,7 +154,7 @@ The communication objects that **global\_session** uses can be configured to use
         "client_cert" : "keys/cl_ec_crt.crt"
  	 },
     "cache" : {
-        "token_path" : "./test/ml_relay.conf",
+        "token_path" : "./ml_relay.conf",
         "am_initializer" : false,
         "seed" : 9849381,
         "record_size" : 384,
@@ -160,12 +165,121 @@ The communication objects that **global\_session** uses can be configured to use
 
 ```
 
-### <u>Client Side Configuration and Use</u>
 
-* **conf** is a JSON object loaded buy **global\_session**
+### <u>Pressure Relief Services</u>
+
+* **conf** is a JSON object loaded by **global\_session**
 
 > **conf.full\_edge** = true,
+> 
+> The pressure relief servers are clients to the relay sibling endpoint server. For a point of clarrifiation, pressure relief servers are not endpoint servers. There are as much clients as are front-end facing clients. However, they don't offer any further upstream movement of objects.
+> 
+> These servers come in two varieties. First, there are those that simply take the most recent entries into the LRU as pressure builds up on the front end. Second, there are those that retain aged out objects and keeps them in a slowly expiring LRU. 
+> 
+> The aim of having these servers is to allow for scaling horizontally the memory needed for session storage as the demands of a service evolve. The **SessionMidpointSibling** can be configured to select a form of distributed hashing, allowing for its table to be distributed among pressure relief devices, each of which may be small, low power servers with enough memory to make their participation in the service feasible. 
+>
+> It is up to the developer to decide whether or not to place one more services on a box. For our service at copious.world, each pressure relief box has one aging service and one expansion service, or two services per box.
+> 
+> Each process that creates an instance of **SessionPressureRelief** merely creates a client connection to the **SessionMidpointSibling**. The connection by itself would be inactive except that the **SessionPressureRelief** instance activates pub/sub mechanisms which remain responsive to messages published (or forwarded) by the middle tier services. So, the **global\_session** only needs to create the connection. 
+> 
+> Some applications may want to make custom versions of the pressure relief services in order to add in commands for administration, logging, etc.
+> 
+> In order to make descendants of the **SessionPressureRelief**, one may require (import) the class from the module as such:
+> 
+```
+const {SessionPreasureRelief} = require('global_session')
+```
 
+Here is an an example of a configuration file for a pressure relief service:
+
+```
+{
+    "lru" : {
+        "manage_section" : true,
+        "cache" : {
+            "seed" : 9849381
+        }
+    },
+    "message_relay" : {
+        "auth_path" : "auths",
+        "address" : "localhost",
+        "port" : 7880,
+	 	 "tls" : {
+	        "server_key" : "keys/ec_key.pem",
+	        "server_cert" : "keys/ec_crt.crt",
+	        "client_cert" : "keys/cl_ec_crt.crt"
+	 	 }
+    }
+}
+
+```
+
+
+
+### <u>Client Side Configuration and Use</u>
+
+* **conf** is a JSON object loaded by the application.
+
+> The client side, or front-end facing application, is always a client connection made by creating a **SessionCacheManager**. The session cache manager has a constructor that requires two configuration objects. One object is for the LRU. The second object is for the message relay client object.
+>
+> The message relay object is set to connect to the address and port of the relay server (the parent process of the middle tier).
+> 
+> The LRU object is set to either create (one process on the application box) or to connect to it. The parameter **manage\_section** when set to **true**, tells the application to create a shared memory section. When the parameter is set to **false**, the application will attach to the shared memory section.
+> 
+> In the application code, the **SessionCacheManager** class may be introduced with a require statement as follows:
+```
+const {SessionCacheManager} = require('global_session')
+```
+
+The application will then create an instance by invoking **new** on the calls with the appropriate constructor paramenters as such:
+
+```
+let CacheCom = new SessionCacheManager(lru_conf,message_relays)
+```
+
+The first paramter will provide the fields necessary to create or attach to a shared memory section and set an LRU in it. The second parameter will establish communication with the **ServeMessageRelay** server. 
+
+And application might have a constructor such as the one in the next axample:
+
+```
+let conf = {
+    "lru" : {
+        "manage_section" : true|false,
+        "cache" : {
+            "seed" : 9849381
+        }
+    },
+    "my_messages" : {
+        "auth_path" : "auths",
+        "address" : "localhost",
+        "port" : 7878,    // <- set the port with your own number
+	 	 "tls" : {
+	        "server_key" : "keys/ec_key.pem",
+	        "server_cert" : "keys/ec_crt.crt",
+	        "client_cert" : "keys/cl_ec_crt.crt"
+	 	 }
+    }
+}
+
+```
+
+The application would then execute the following:
+
+```
+let cacheCom = new SessionCacheManager(conf.lru,conf.my_messages)
+```
+
+Later on in the application, the client would be able to get and set object by calling on the *cacheCom* instance. E.g.
+
+```
+cacheCom.set(key,value)
+
+//This might then be followed by 
+
+let value = await cacheCom.get(key)
+```
+
+Notice that the *get* method is asynchronous since the value may have to be retrieved from the backend cache and reintroduced to the local cache.
 
 
 
