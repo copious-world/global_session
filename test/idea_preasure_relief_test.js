@@ -1,7 +1,7 @@
 
 
 const {ServeMessageEndpoint} = require('message-relay-services')
-const { XXHash32 } = require('xxhash-addon')
+const { XXHash32 } = require('xxhash32-node-cmake')
 
 
 const {conf_loader,fix_path} = require("../lib/utils")

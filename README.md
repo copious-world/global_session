@@ -286,7 +286,9 @@ Notice that the *get* method is asynchronous since the value may have to be retr
 ## Session Objects
 
 
+
 ## Other Kinds of Objects
+
 
 
 
