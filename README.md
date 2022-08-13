@@ -104,7 +104,7 @@ The communication objects that **global\_session** uses can be configured to use
     "path_types" : {
         "auths" : {
             "relay" : {
-                "proc_name" : ["global_session", "./sibling.conf"]
+                "proc_name" : ["global-sessions", "./sibling.conf"]
             },
             "cache" : {
                 "token_path" : "./ml_relay.conf",

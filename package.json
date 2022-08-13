@@ -1,6 +1,6 @@
 {
   "name": "global_session",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "description": "A link between LRU and messaging to peers which may store or cache LRU entries remotely",
   "main": "index.js",
   "directories": {
@@ -10,7 +10,8 @@
     "global-sessions": "./bin/index.js"
   },
   "scripts": {
-    "test": "bash test/all_tests.sh"
+    "test": "bash test/all_tests.sh",
+    "postinstall": "cp *.conf $INIT_CWD"
   },
   "repository": {
     "type": "git",
@@ -32,7 +33,7 @@
   "homepage": "https://github.com/copious-world/global_session#readme",
   "dependencies": {
     "ftok": "^1.0.0",
-    "message-relay-services": "^0.9.0",
+    "message-relay-services": "^0.9.1",
     "shm-lru-cache" : "^0.1.7"
   }
 }
