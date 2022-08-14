@@ -1,6 +1,6 @@
 {
   "name": "global_session",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "A link between LRU and messaging to peers which may store or cache LRU entries remotely",
   "main": "index.js",
   "directories": {
@@ -34,6 +34,6 @@
   "dependencies": {
     "ftok": "^1.0.0",
     "message-relay-services": "^0.9.1",
-    "shm-lru-cache" : "^0.1.7"
+    "shm-lru-cache" : "^0.1.8"
   }
 }
