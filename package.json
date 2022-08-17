@@ -1,6 +1,6 @@
 {
   "name": "global_session",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "A link between LRU and messaging to peers which may store or cache LRU entries remotely",
   "main": "index.js",
   "directories": {
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "bash test/all_tests.sh",
-    "postinstall": "cp *.conf $INIT_CWD"
+    "postinstall": "cp *.conf $INIT_CWD; mkdir $INIT_CWD/keys; cp keygen.sh $INIT_CWD;"
   },
   "repository": {
     "type": "git",

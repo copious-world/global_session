@@ -26,7 +26,7 @@ Not all clients to downstream servers have to be front-end facing siblings of us
 ## Installation
 
 ```
-npm install global_session
+npm install global_session -g
 ```
 
 ## Which Modules are Which
@@ -205,9 +205,9 @@ Here is an an example of a configuration file for a pressure relief service:
         "address" : "localhost",
         "port" : 7880,
 	 	 "tls" : {
-	        "server_key" : "keys/ec_key.pem",
-	        "server_cert" : "keys/ec_crt.crt",
-	        "client_cert" : "keys/cl_ec_crt.crt"
+	        "client_key" : "keys/ec_key.pem",
+	        "client_cert" : "keys/cl_ec_crt.crt",
+	        "server_cert" : "keys/ec_crt.crt"
 	 	 }
     }
 }
@@ -254,9 +254,9 @@ let conf = {
         "address" : "localhost",
         "port" : 7878,    // <- set the port with your own number
 	 	 "tls" : {
-	        "server_key" : "keys/ec_key.pem",
-	        "server_cert" : "keys/ec_crt.crt",
-	        "client_cert" : "keys/cl_ec_crt.crt"
+	        "client_key" : "keys/ec_key.pem",
+	        "client_cert" : "keys/cl_ec_crt.crt",
+	        "server_cert" : "keys/ec_crt.crt"
 	 	 }
     }
 }
