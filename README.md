@@ -8,7 +8,7 @@ Sessions that age out or that are pushed out under heavy traffic conditions, may
 
 The front-end facing clients can be configured to setup the shared memory sections for expected activity. They can be configured to connect to the downstream servers using TCP/IP either in the clear or with TLS. The may be configured to talk to as many downstream sessions servers as deemed fit for the application. 
 
-The server programs can be run out of the same executable name (setup by npm installation): ***global-sessions***.  Depending on the configuration, the server may be on of two types. The first type is the middle tier server that manages object traffic. The second type is the service client, and endpoint, that may take some part of the objects managed by the middle tier. These might be called **pressure relief** servers. The peasure relief type may be two different subtypes, one that works to keep older objects around, and another that allows relatively new objects to enter and leave quickly as traffic grows and shrinks. 
+The server programs can be run out of the same executable name (setup by npm installation): ***global-sessions***.  Depending on the configuration, the server may be one of two types. The first type is the middle tier server that manages object traffic. The second type is the service client, and endpoint, that may take some part of the objects managed by the middle tier. These might be called **pressure relief** servers. The peasure relief type may be two different subtypes, one that works to keep older objects around, and another that allows relatively new objects to enter and leave quickly as traffic grows and shrinks. 
 
 The idea is that the endpoint boxes (server leafs) may run the two types of pressure relief services.
 
