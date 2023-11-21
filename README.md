@@ -1,5 +1,7 @@
 # global\_session
 
+> **Note:** For some time, this module will be a dependency of **copious-session-cluster**. After some time and some number of versions, the module **copious-session-cluster** may take on this functionality. This has to do with naming.  Another module, **global-sessions**, will be available for wide area sessions vetted by consensus mechanisms.
+
 This package represents client modules and servers that provide in memory tables for small objects with lifespans influenced by recency of use. Clients may use the module (*require*) in order to create or use a locally accessable shared memory table that behaves as an LRU (least recently used) list. Clients connect to servers that maintain a backup LRU and pub/sub service made to inform networked clients (separate machines) of newly arriving objects. The service passes around objects to siblings (front-end facing clients) and to backend services that provide pressure relief and storage for aged objects. 
 
 The objects in question may represent sessions for service that require authorization or authorization validation. On any one client machine hosting front-end facing processes, some processes may create new sessions and other may attach to the shared memory LRU in order to check if sessions are going. 
@@ -20,7 +22,7 @@ global-sessions  config-file.conf
 
 In the next sections, details of configuration will be explained. 
 
-####External Clients
+####  External Clients
 Not all clients to downstream servers have to be front-end facing siblings of user services. Some clients may be gateways to other validation systems, such as blockchain session validators. Within the project documentation, we may provide some instructions on how to create such external services. However, the pressure relief services are the only similar servers that are supplied. In fact, the middle tier server may be a better model for external services at times. But, the best design of such systems may be as endpoints that then operate with UDP style P2P communications. 
 
 ## Installation
